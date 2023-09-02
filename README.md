@@ -20,7 +20,7 @@ We begin by setting up the necessary infrastructure, including installing and co
 ### Install Python depenencies in requirements file
 ```bash
 pip install -r requirements.txt
-``````
+```
 ---
 
 ### Create bucket configs for various data sources in influxdb
@@ -29,7 +29,9 @@ pip install -r requirements.txt
 ---
 
 ### Generating Simulated Time Series Data:
-To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently. We discuss best practices for batch data insertion and explore strategies for handling real-time data streams. Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
+To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently. 
+
+We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on this link. Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
 
 Here is an example of a flux query that interacts with the data to produce an influxdb visualization. This query can also be used in a python script.
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/flux_query.png)
@@ -81,7 +83,7 @@ Weather API live data dashboard in Grafana
 We can also explore more advanced visualization options in Grafana, including heatmaps, gauges, and annotations, to enhance the interpretability of the time series data. Annotations help us mark important events or anomalies on the graphs for better understanding.
 
 ### Implementing Data Alerts in Grafana:
-We set up data alerts within Grafana to trigger notifications based on predefined thresholds or specific conditions. Python scripts are used to handle custom alerting actions, such as sending emails or executing external processes.
+We can also set up data alerts within Grafana to trigger notifications based on predefined thresholds or specific conditions. Python scripts are used to handle custom alerting actions, such as sending emails or executing external processes.
 
 ### Conclusion:
 In conclusion, this project showcases a comprehensive solution for exploring time series data using InfluxDB, Grafana, and Python. By combining data insertion and querying scripts with interactive Grafana dashboards, users gain powerful tools to manage, analyze, and visualize time series data effectively. This integrated approach provides a foundation for solving real-world challenges in various industries, making data-driven decision-making more accessible and impactful.
