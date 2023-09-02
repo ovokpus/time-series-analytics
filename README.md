@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ### Generating Simulated Time Series Data:
 To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently. 
 
-We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on this link. Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
+We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on ![this page](https://github.com/ovokpus/time-series-analytics/blob/main/BESTPRACTICES.md). Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
 
 Here is an example of a flux query that interacts with the data to produce an influxdb visualization. This query can also be used in a python script.
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/flux_query.png)
