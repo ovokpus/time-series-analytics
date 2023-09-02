@@ -1,6 +1,8 @@
 # time-series-analytics
 Title: Exploring Time Series Data with InfluxDB, Grafana, and Python: A Comprehensive Project
 
+![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/heading.jpg)
+
 ## Abstract
 This project explores the integration of InfluxDB and Grafana to manage and visualize time series data. Additionally, Python scripts are employed to facilitate the insertion and querying of data in the InfluxDB database. By combining these technologies, we create an end-to-end solution that efficiently collects, stores, and analyzes time series data while providing interactive and insightful visualizations through Grafana.
 
