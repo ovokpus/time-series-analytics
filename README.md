@@ -6,6 +6,8 @@ Title: Exploring Time Series Data with InfluxDB, Grafana, and Python: A Comprehe
 ## Abstract
 This project explores the integration of InfluxDB and Grafana to manage and visualize time series data. Additionally, Python scripts are employed to facilitate the insertion and querying of data in the InfluxDB database. By combining these technologies, we create an end-to-end solution that efficiently collects, stores, and analyzes time series data while providing interactive and insightful visualizations through Grafana.
 
+---
+
 ## Introduction:
 We introduce the project's objectives and outline the technologies utilized, including InfluxDB, Grafana, and Python. This integrated approach aims to offer a comprehensive solution for time series data management and exploration.
 
@@ -38,18 +40,7 @@ docker compose up
 ---
 
 ### Generating Simulated Time Series Data:
-To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently. 
-
-We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on [this page](https://github.com/ovokpus/time-series-analytics/blob/main/BESTPRACTICES.md). Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
-
-Here is an example of a flux query that interacts with the data to produce an influxdb visualization. This query can also be used in a python script.
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/flux_query.png)
-
-Beijing Weather data visual
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_beijing.png)
-
-Weather API live data visual
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/live_weather_influxdb.png)
+To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently.
 
 ```python
  client = influxdb_client.InfluxDBClient(url="http://localhost:8086", token=my_token, org="my-org")
@@ -67,7 +58,20 @@ if __name__ == '__main__':
     run()
 ```
 
+---
 
+We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on [this page](https://github.com/ovokpus/time-series-analytics/blob/main/BESTPRACTICES.md). Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
+
+Here is an example of a flux query that interacts with the data to produce an influxdb visualization. This query can also be used in a python script.
+![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/flux_query.png)
+
+Beijing Weather data visual
+![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_beijing.png)
+
+Weather API live data visual
+![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/live_weather_influxdb.png)
+
+---
 
 ### Integrating Grafana with Python and InfluxDB:
 In this section, we integrate Grafana with both Python and InfluxDB. We demonstrate how to configure Grafana data sources to connect to the InfluxDB database and utilize Python scripts as data input sources for the dashboards.
@@ -78,6 +82,7 @@ Creating influxdb data source in Grafana
 Configuring data source in Grafana using influxdb tokens and bucket names
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/grafana_configs.png)
 
+---
 ### Creating Interactive Dashboards:
 Using Grafana's user-friendly interface, we design interactive dashboards that display visualizations of the time series data. We discuss the process of choosing appropriate visualization types based on the data and the insights we want to extract.
 
@@ -86,6 +91,8 @@ Beijing Data Dashboard in Grafana
 
 Weather API live data dashboard in Grafana
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/live_weather_api_grafana.png)
+
+---
 
 ## Taking it further
 ### Advanced Visualizations and Annotations:
@@ -96,3 +103,5 @@ We can also set up data alerts within Grafana to trigger notifications based on 
 
 ### Conclusion:
 In conclusion, this project showcases a comprehensive solution for exploring time series data using InfluxDB, Grafana, and Python. By combining data insertion and querying scripts with interactive Grafana dashboards, users gain powerful tools to manage, analyze, and visualize time series data effectively. This integrated approach provides a foundation for solving real-world challenges in various industries, making data-driven decision-making more accessible and impactful.
+
+---
