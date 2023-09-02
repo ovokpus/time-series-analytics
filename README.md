@@ -23,6 +23,15 @@ pip install -r requirements.txt
 ```
 ---
 
+### Spinning up Influxdb and Grafana interfaces via docker containers and docker compose
+
+```bash
+docker compose up
+
+# change permissions to be able to access config files
+ chown -R ubuntu ~/ && chmod -R 777 ~/
+```
+
 ### Create bucket configs for various data sources in influxdb
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_configs.png)
 
