@@ -20,9 +20,8 @@ We begin by setting up the necessary infrastructure, including installing and co
 ### Install Python depenencies in requirements file
 ```bash
 pip install -r requirements.txt
-
+``````
 ---
-```
 
 ### Create bucket configs for various data sources in influxdb
 ![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_configs.png)
