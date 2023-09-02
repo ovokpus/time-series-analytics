@@ -1,0 +1,7 @@
+{
+    "Key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "url": "http://localhost:8086",
+    "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "org": "my-org",
+    "api_url": "https://api.weatherapi.com/v1/current.json"
+}
