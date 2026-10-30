@@ -1,107 +1,115 @@
-# time-series-analytics
-Title: Exploring Time Series Data with InfluxDB, Grafana, and Python: A Comprehensive Project
+# 📈 Time-Series Analytics: InfluxDB · Grafana · Python
 
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/heading.jpg)
+> Collect, store, explore and visualise time-series data with **InfluxDB 2 (Flux)**, **Grafana** dashboards that are
+> provisioned automatically, and a **FastAPI + React** console that adds anomaly detection and live ingestion.
+> One `docker compose up`, nothing to click through.
 
-## Abstract
-This project explores the integration of InfluxDB and Grafana to manage and visualize time series data. Additionally, Python scripts are employed to facilitate the insertion and querying of data in the InfluxDB database. By combining these technologies, we create an end-to-end solution that efficiently collects, stores, and analyzes time series data while providing interactive and insightful visualizations through Grafana.
-
----
-
-## Introduction:
-We introduce the project's objectives and outline the technologies utilized, including InfluxDB, Grafana, and Python. This integrated approach aims to offer a comprehensive solution for time series data management and exploration.
-
-### Time Series databases vs Relational databases
-Time series databases are optimized for time-stamped data, with flexible schemas, efficient time-based queries, and specialized compression for storage. Relational databases are ideal for complex relationships and transactions but may not handle time series data as efficiently. Choose based on specific project requirements.
+![Grafana air-quality dashboard](docs/screenshots/03-grafana-air-quality.png)
 
 ---
 
-## Setting Up the Environment:
-We begin by setting up the necessary infrastructure, including installing and configuring InfluxDB, Grafana, and Python libraries. We walk through the process of creating a local development environment to start the project.
+## 1. The idea
 
-### Install Python depenencies in requirements file
+Time-series databases are built for timestamped, append-heavy data. They give you cheap retention, time-window aggregation and fast range scans. This project puts two data feeds through one stack:
+
+| Feed | Source | Measurement / bucket |
+|---|---|---|
+| Hourly air quality, Beijing PRSA schema (PM2.5, PM10, NO2, O3, TEMP, WSPM…) | **Synthetic** by default; real [UCI PRSA CSVs](https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data) if you mount them | `air_quality` / `air-quality` |
+| Live current weather | **Real**: weatherapi.com if `WEATHERAPI_KEY` is set, otherwise keyless [Open-Meteo](https://open-meteo.com) | `api` / `weather` |
+
+## 2. Architecture
+
+```mermaid
+flowchart LR
+  subgraph compose[docker compose]
+    S[seed<br/>one-shot loader] -->|write| I[(InfluxDB 2.7)]
+    A[FastAPI :8000<br/>series · anomalies · weather] -->|Flux| I
+    P[weather poller<br/>in api] -->|write| I
+    G[Grafana :3000<br/>provisioned datasource + 2 dashboards] -->|Flux| I
+    F[React console :8080<br/>nginx] -->|/api| A
+  end
+  W[(Open-Meteo / weatherapi.com)] --> P
+  D[(./data PRSA CSVs<br/>optional)] -.-> S
+```
+
+```mermaid
+sequenceDiagram
+  participant U as Console
+  participant A as FastAPI
+  participant I as InfluxDB
+  U->>A: GET /api/anomalies?station=Wanliu&field=PM2.5
+  A->>I: from(bucket) |> range |> filter |> aggregateWindow(1h, mean)
+  I-->>A: hourly series
+  A->>A: rolling 24h z-score (window excludes the point)
+  A-->>U: points with |z| ≥ threshold
+```
+
+## 3. Run it
+
 ```bash
-pip install -r requirements.txt
+cp .env.example .env     # optional; every value has a local default
+docker compose up --build
 ```
----
 
-### Spinning up Influxdb and Grafana interfaces via docker containers and docker compose
+| URL | What |
+|---|---|
+| http://localhost:3000 | Grafana (anonymous viewer; admin/admin to edit, local default) |
+| http://localhost:8080 | React console |
+| http://localhost:8000/docs | API |
+| http://localhost:8086 | InfluxDB UI (my-user / my-password, local only) |
 
 ```bash
-docker compose up
-
-# change permissions to be able to access config files
- chown -R ubuntu ~/ && chmod -R 777 ~/
+docker compose down        # add -v to wipe the InfluxDB/Grafana volumes
 ```
 
-### Create bucket configs for various data sources in influxdb
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_configs.png)
+**Real air-quality data:** download the UCI dataset, put the CSVs in `data/PRSA_Data_20130301-20170228/`, run `docker compose down -v && docker compose up`, then set the dashboard time range to 2013–2017.
 
----
+## 4. The console (beside Grafana)
 
-### Generating Simulated Time Series Data:
-To simulate real-world scenarios, we create Python scripts that generate simulated time series data. These scripts allow us to mimic various data sources, such as IoT sensors, financial metrics, or environmental measurements. These Python scripts leverage the InfluxDB Python client to insert the generated time series data into the InfluxDB database efficiently.
+Grafana does the dashboards. The console adds what Grafana doesn't show out of the box: **anomaly detection** with an adjustable threshold, a station comparison table, an honest data-source label, and a **Collect now** button for live weather.
 
-```python
- client = influxdb_client.InfluxDBClient(url="http://localhost:8086", token=my_token, org="my-org")
+![Console with anomalies](docs/screenshots/01-app-anomalies.png)
 
-    # write the test data into measurement 'air_quality'
-    write_api = client.write_api(write_options=SYNCHRONOUS)
-    message = write_api.write(bucket="air-quality", record=ex_df, data_frame_measurement_name='test', data_frame_tag_columns=datatags, data_frame_field_columns=datatags)
+![Temperature, 7 days](docs/screenshots/02-app-temperature.png)
 
-    print(message)
+## 5. Grafana, provisioned as code
 
-    write_api.flush()
-    
+- `grafana/provisioning/datasources/influxdb.yml` sets up the Flux datasource. The token and org come from env.
+- `grafana/dashboards/air-quality.json` has a `station` variable (from `schema.tagValues`), latest-PM2.5 stat tiles with AQI-style thresholds, PM2.5/PM10/temperature/wind/NO2-vs-O3 panels, and `aggregateWindow(v.windowPeriod)`.
+- `grafana/dashboards/live-weather.json` holds the polled real observations and refreshes every 1 minute.
 
-if __name__ == '__main__':
-    run()
-```
+![Live weather dashboard](docs/screenshots/04-grafana-live-weather.png)
 
----
+> ⚠️ **Honest data labels.** The air-quality values in these screenshots are **synthetic**: the generator follows the PRSA schema and injects pollution spikes. The console and `/health` (`air_quality_data`) say so. The weather values are **real Open-Meteo observations for Toronto**. The screenshot shows a single point because the stack had only just started (one poll every 5 minutes).
 
-We discuss best practices for batch data insertion and explore strategies for handling real-time data streams on [this page](https://github.com/ovokpus/time-series-analytics/blob/main/BESTPRACTICES.md). Python scripts can also be written to perform data queries on InfluxDB using the InfluxQL or Flux query languages. These queries enable us to retrieve specific subsets of time series data for analysis and visualization.
+## 6. API
 
-Here is an example of a flux query that interacts with the data to produce an influxdb visualization. This query can also be used in a python script.
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/flux_query.png)
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | InfluxDB status, data mode (synthetic/real), weather source, last poll or error |
+| GET | `/api/stations` | Station tags and fields |
+| GET | `/api/series` | Hourly (or `every`) mean for a station and field |
+| GET | `/api/anomalies` | Rolling z-score anomalies (`window`, `threshold`) |
+| GET | `/api/summary` | Mean/max/count per station |
+| GET / POST | `/api/weather`, `/api/weather/collect` | Read the live series / record one real observation (`502` and nothing written on failure) |
 
-Beijing Weather data visual
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/influxdb_beijing.png)
+Query parameters are validated before they go into Flux (station pattern, field whitelist, `-7d`-style ranges).
 
-Weather API live data visual
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/live_weather_influxdb.png)
+![API docs](docs/screenshots/05-api-docs.png)
 
----
+## 7. What changed from the original scripts
 
-### Integrating Grafana with Python and InfluxDB:
-In this section, we integrate Grafana with both Python and InfluxDB. We demonstrate how to configure Grafana data sources to connect to the InfluxDB database and utilize Python scripts as data input sources for the dashboards.
+- `src/*.py` were moved to `legacy/src/`. The logic now lives in `tsa/` (pure transforms, Influx I/O, seeder, weather).
+- Bugs fixed:
+  - `api_client.py` read a non-existent `src/config.json` and `config['bucket']`.
+  - It stamped local time with a hard-coded `+12:00` offset.
+  - `insert_data.py` passed the tag list as `data_frame_field_columns`, so no numeric fields were written to `test`.
+- Compose: the deprecated `version: '2'` and `latest` image tags are gone, and the stale InfluxDB 1.x env vars in Grafana were dropped. Bind-mount data/config dirs (which needed `chmod -R 777 ~/`) became named volumes. A fixed local admin token is set, so nothing has to be copied by hand.
+- `requirements.txt` was replaced by uv with `pyproject.toml` and `uv.lock`.
+- The original README and screenshots are in [docs/ORIGINAL_README.md](docs/ORIGINAL_README.md). Batch-ingestion notes are in [docs/BESTPRACTICES.md](docs/BESTPRACTICES.md).
 
-Creating influxdb data source in Grafana
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/grafana_connection.png)
+## 8. Quality
 
-Configuring data source in Grafana using influxdb tokens and bucket names
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/grafana_configs.png)
-
----
-### Creating Interactive Dashboards:
-Using Grafana's user-friendly interface, we design interactive dashboards that display visualizations of the time series data. We discuss the process of choosing appropriate visualization types based on the data and the insights we want to extract.
-
-Beijing Data Dashboard in Grafana
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/beijing_data_grafana.png)
-
-Weather API live data dashboard in Grafana
-![image](https://github.com/ovokpus/time-series-analytics/blob/main/img/live_weather_api_grafana.png)
-
----
-
-## Taking it further
-### Advanced Visualizations and Annotations:
-We can also explore more advanced visualization options in Grafana, including heatmaps, gauges, and annotations, to enhance the interpretability of the time series data. Annotations help us mark important events or anomalies on the graphs for better understanding.
-
-### Implementing Data Alerts in Grafana:
-We can also set up data alerts within Grafana to trigger notifications based on predefined thresholds or specific conditions. Python scripts are used to handle custom alerting actions, such as sending emails or executing external processes.
-
-### Conclusion:
-In conclusion, this project showcases a comprehensive solution for exploring time series data using InfluxDB, Grafana, and Python. By combining data insertion and querying scripts with interactive Grafana dashboards, users gain powerful tools to manage, analyze, and visualize time series data effectively. This integrated approach provides a foundation for solving real-world challenges in various industries, making data-driven decision-making more accessible and impactful.
-
----
+- `uv run pytest`: transforms (PRSA parsing, UTC handling, deterministic synthetic data, z-score), API (Flux-injection guards, anomaly maths, failed collection writes nothing, degraded health) and the Grafana provisioning files. No InfluxDB or network needed.
+- CI: tests, then the frontend build, then `docker compose build`.
+- `uv run --no-project --with playwright python scripts/screenshots.py` regenerates every screenshot from the running stack.

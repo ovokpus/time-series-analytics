@@ -1,33 +1,82 @@
-version: '2'
+x-influx-env: &influx-env
+  INFLUX_URL: http://influxdb:8086
+  INFLUX_TOKEN: ${INFLUX_TOKEN:-local-dev-token}
+  INFLUX_ORG: ${INFLUX_ORG:-my-org}
+  INFLUX_AIR_BUCKET: ${INFLUX_AIR_BUCKET:-air-quality}
+  INFLUX_WEATHER_BUCKET: ${INFLUX_WEATHER_BUCKET:-weather}
+
 services:
   influxdb:
-    image: influxdb:2.0
-    ports:
-      - '8086:8086' 
-    volumes:
-      - ./data:/var/lib/influxdb2
-      - ./config:/etc/influxdb2
+    image: influxdb:2.7
+    ports: ["${INFLUX_PORT:-8086}:8086"]
     environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=my-user
-      - DOCKER_INFLUXDB_INIT_PASSWORD=my-password
-      - DOCKER_INFLUXDB_INIT_ORG=my-org 
-      - DOCKER_INFLUXDB_INIT_BUCKET=air-quality
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USER:-my-user}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:-my-password}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-my-org}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_AIR_BUCKET:-air-quality}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:-local-dev-token}
+    volumes: [influx-data:/var/lib/influxdb2]
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      retries: 30
+
+  seed:
+    build: .
+    image: time-series-analytics/app:local
+    command: ["python", "-m", "tsa.seed"]
+    environment:
+      <<: *influx-env
+      SYNTH_STATIONS: ${SYNTH_STATIONS:-Aotizhongxin,Wanliu,Dongsi}
+      SYNTH_HOURS: ${SYNTH_HOURS:-720}
+    volumes: ["./data:/data:ro"]   # drop real UCI PRSA CSVs in ./data/PRSA_Data_20130301-20170228/
+    depends_on:
+      influxdb: {condition: service_healthy}
+
+  api:
+    image: time-series-analytics/app:local
+    environment:
+      <<: *influx-env
+      WEATHERAPI_KEY: ${WEATHERAPI_KEY:-}
+      WEATHER_CITY: ${WEATHER_CITY:-Toronto}
+      WEATHER_LAT: ${WEATHER_LAT:-43.65}
+      WEATHER_LON: ${WEATHER_LON:--79.38}
+      WEATHER_POLL_SECONDS: ${WEATHER_POLL_SECONDS:-300}
+      GRAFANA_PUBLIC_URL: http://localhost:${GRAFANA_PORT:-3000}
+    ports: ["${API_PORT:-8000}:8000"]
+    depends_on:
+      seed: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      retries: 20
 
   grafana:
-    image: grafana/grafana-enterprise:latest
-    restart: always
-    ports:
-      - '3000:3000'
+    image: grafana/grafana-oss:11.6.0
+    ports: ["${GRAFANA_PORT:-3000}:3000"]
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - INFLUXDB_DB=db0
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_PASSWORD=pw12345
-      - INFLUXDB_ADMIN_USER_PASSWORD=admin
-      - INFLUXDB_USERNAME=user
-      - INFLUXDB_PASSWORD=user12345
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/air-quality.json
+      INFLUX_TOKEN: ${INFLUX_TOKEN:-local-dev-token}
+      INFLUX_ORG: ${INFLUX_ORG:-my-org}
+      INFLUX_AIR_BUCKET: ${INFLUX_AIR_BUCKET:-air-quality}
     volumes:
-      - ./gfdata:/var/lib/grafana
-    user: '1000'
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      influxdb: {condition: service_healthy}
+
+  frontend:
+    build: ./frontend
+    ports: ["${FRONTEND_PORT:-8080}:80"]
+    depends_on:
+      api: {condition: service_healthy}
+
+volumes:
+  influx-data:
+  grafana-data:
