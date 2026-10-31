@@ -10,6 +10,10 @@
 
 ---
 
+## Business case
+
+Sensor readings often sit in spreadsheets until a spike causes a complaint. This stack stores readings in InfluxDB, charts them in Grafana dashboards defined as code, and flags unusual values with a rolling z-score. It suits facilities, environment and small industrial teams that want early warnings without a large platform. [docs/BUSINESS_CASE.md](docs/BUSINESS_CASE.md) covers the use cases, an illustrative ROI model and the limits.
+
 ## 1. The idea
 
 Time-series databases are built for timestamped, append-heavy data. They give you cheap retention, time-window aggregation and fast range scans. This project puts two data feeds through one stack:
