@@ -1,5 +1,7 @@
 # 📈 Time-Series Analytics: InfluxDB · Grafana · Python
 
+<p align="center"><img src="assets/banner.jpg" alt="Brass barometer, a paper strip chart with a waveform trace and an hourglass on a dark surface" width="100%"></p>
+
 <p align="center"><img src="docs/assets/hero.svg" alt="Time-Series Analytics" width="100%"/></p>
 
 > Collect, store, explore and visualise time-series data with **InfluxDB 2 (Flux)**, **Grafana** dashboards that are
