@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars (git-ignored) and edit. Placeholders only.
+region = "us-east-1"
+image_tag = "v1"
+# influx_url = "https://us-east-1-1.aws.cloud2.influxdata.com"
+# influx_token = "<set-me>"  # sensitive: prefer TF_VAR_influx_token
+# influx_org = "<set-me>"
+# grafana_admin_password = "<set-me>"  # sensitive: prefer TF_VAR_grafana_admin_password
