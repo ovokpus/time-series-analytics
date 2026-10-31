@@ -1,5 +1,7 @@
 # 📈 Time-Series Analytics: InfluxDB · Grafana · Python
 
+<p align="center"><img src="docs/assets/hero.svg" alt="Time-Series Analytics" width="100%"/></p>
+
 > Collect, store, explore and visualise time-series data with **InfluxDB 2 (Flux)**, **Grafana** dashboards that are
 > provisioned automatically, and a **FastAPI + React** console that adds anomaly detection and live ingestion.
 > One `docker compose up`, nothing to click through.
@@ -18,6 +20,8 @@ Time-series databases are built for timestamped, append-heavy data. They give yo
 | Live current weather | **Real**: weatherapi.com if `WEATHERAPI_KEY` is set, otherwise keyless [Open-Meteo](https://open-meteo.com) | `api` / `weather` |
 
 ## 2. Architecture
+
+<p align="center"><img src="docs/assets/flow.svg" alt="Time-Series Analytics data flow" width="100%"/></p>
 
 ```mermaid
 flowchart LR
